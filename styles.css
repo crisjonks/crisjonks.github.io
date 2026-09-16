@@ -34,7 +34,6 @@ body {
   overflow: hidden;
 }
 
-/* Animated grid */
 body::before {
   content: "";
   position: fixed;
@@ -48,7 +47,6 @@ body::before {
   z-index: 0;
 }
 
-/* Radial atmosphere */
 body::after {
   content: "";
   position: fixed;
@@ -65,9 +63,6 @@ body::after {
   to   { transform: translate(48px, 48px); }
 }
 
-/* ----------------------
-   Liquid Glass Card
-   ---------------------- */
 .card {
   max-width: 900px;
   width: 100%;
@@ -82,10 +77,10 @@ body::after {
 
   border: 1px solid rgba(78, 222, 122, 0.2);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),   /* top specular */
-    inset 0 -1px 0 rgba(0, 0, 0, 0.12),          /* bottom depth */
-    0 20px 56px rgba(0, 0, 0, 0.55),             /* drop shadow */
-    0 0 90px rgba(78, 222, 122, 0.04);           /* ambient glow */
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),   
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12),          
+    0 20px 56px rgba(0, 0, 0, 0.55),             
+    0 0 90px rgba(78, 222, 122, 0.04);           
 
   animation: card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -101,9 +96,6 @@ body::after {
   align-items: flex-start;
 }
 
-/* ----------------------
-   Avatar
-   ---------------------- */
 .avatar {
   width: 96px;
   height: 96px;
@@ -158,9 +150,6 @@ body::after {
   flex-wrap: wrap;
 }
 
-/* ----------------------
-   Glass Buttons
-   ---------------------- */
 .links-btn,
 .projects-btn,
 .contact-btn {
@@ -199,9 +188,6 @@ body::after {
   border-color: rgba(78, 222, 122, 0.3);
 }
 
-/* ----------------------
-   Status bar
-   ---------------------- */
 .status-bar {
   display: flex;
   align-items: center;
@@ -235,11 +221,8 @@ body::after {
   50%       { opacity: 0; }
 }
 
-/* ----------------------
-   Content
-   ---------------------- */
 .content-stack {
-  min-height: 0;
+  min-height: 92px;
 }
 
 .tag-list {
@@ -286,9 +269,6 @@ body::after {
   color: var(--overlay);
 }
 
-/* ----------------------
-   Social icons
-   ---------------------- */
 .icons {
   margin-top: 12px;
   display: flex;
@@ -325,9 +305,6 @@ body::after {
   object-fit: contain;
 }
 
-/* ----------------------
-   Projects / Contact
-   ---------------------- */
 .projects,
 .contact {
   margin-top: 10px;
@@ -377,9 +354,6 @@ body::after {
   font-size: 13px;
 }
 
-/* ----------------------
-   Glass Time Pill
-   ---------------------- */
 .time {
   position: fixed;
   bottom: 22px;
@@ -425,9 +399,6 @@ body::after {
   transform: translateX(-50%) translateY(-2px);
 }
 
-/* ----------------------
-   Easter Egg Modal
-   ---------------------- */
 @keyframes egg-in {
   from { opacity: 0; transform: scale(0.88) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -520,9 +491,6 @@ body::after {
   background: rgba(78, 222, 122, 0.09);
 }
 
-/* ----------------------
-   Matrix Rain Easter Egg
-   ---------------------- */
 .matrix-overlay {
   position: fixed;
   inset: 0;
@@ -543,23 +511,6 @@ body::after {
   height: 100%;
 }
 
-.matrix-hint {
-  position: absolute;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--accent);
-  font-family: "Merriweather", Georgia, serif;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  opacity: 0.75;
-  text-shadow: 0 0 8px rgba(78, 222, 122, 0.6);
-  pointer-events: none;
-}
-
-/* ----------------------
-   Responsive
-   ---------------------- */
 @media (max-width: 640px) {
   body {
     padding: 16px;

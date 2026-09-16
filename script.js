@@ -1,6 +1,3 @@
-// -------------------------
-// Elements
-// -------------------------
 const linksBtn = document.getElementById("links-btn");
 const projectsBtn = document.getElementById("projects-btn");
 const contactBtn = document.getElementById("contact-btn");
@@ -17,10 +14,6 @@ const headerActions = document.querySelector(".header-actions");
 
 const ORIGINAL_NAME = displayName ? displayName.textContent : "crisjonks";
 
-
-// -------------------------
-// Audio
-// -------------------------
 let clickSound = document.getElementById("click-sound");
 
 if (!clickSound) {
@@ -49,10 +42,6 @@ document.addEventListener(
   true
 );
 
-
-// -------------------------
-// Projects
-// -------------------------
 const projects = [
   {
     name: "code-editor",
@@ -79,10 +68,6 @@ if (projectsContainer) {
     .join("");
 }
 
-
-// -------------------------
-// Contact section
-// -------------------------
 let ensuredContactBtn = contactBtn;
 if (!ensuredContactBtn && headerActions) {
   ensuredContactBtn = document.createElement("button");
@@ -109,10 +94,6 @@ if (!ensuredContactContainer && projectsContainer) {
   projectsContainer.insertAdjacentElement("afterend", ensuredContactContainer);
 }
 
-
-// -------------------------
-// Tab switching
-// -------------------------
 function setHidden(el, hidden) {
   if (!el) return;
   el.classList.toggle("hidden", hidden);
@@ -156,10 +137,6 @@ if (ensuredContactBtn) ensuredContactBtn.addEventListener("click", showContact);
 
 showLinks();
 
-
-// -------------------------
-// Hover username on socials
-// -------------------------
 if (icons && displayName) {
   icons.addEventListener("pointerover", (e) => {
     const btn = e.target.closest(".social-link");
@@ -181,10 +158,6 @@ if (icons && displayName) {
   });
 }
 
-
-// -------------------------
-// Toronto time + tooltip
-// -------------------------
 const torontoFmt = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Toronto",
   hour: "numeric",
@@ -240,10 +213,6 @@ function updateTime() {
 updateTime();
 setInterval(updateTime, 60000);
 
-
-// -------------------------
-// Typing status text (randomized "splash text")
-// -------------------------
 if (statusText) {
   const SPLASH_TEXTS = [
     "coding things nobody asked for since forever",
@@ -279,10 +248,6 @@ if (statusText) {
   setTimeout(typeStatus, 900);
 }
 
-
-// -------------------------------------------------------
-// Easter Egg — click the avatar 7 times to open Snake
-// -------------------------------------------------------
 (function () {
   const avatarEl = document.querySelector(".avatar");
   if (!avatarEl) return;
@@ -306,7 +271,6 @@ if (statusText) {
   });
 })();
 
-// Also: Konami code (↑↑↓↓←→←→BA)
 (function () {
   const SEQ = [
     "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
@@ -316,7 +280,7 @@ if (statusText) {
   let idx = 0;
 
   document.addEventListener("keydown", (e) => {
-    if (document.getElementById("egg-overlay")) return; // game already open
+    if (document.getElementById("egg-overlay")) return;
     if (e.key === SEQ[idx]) {
       idx++;
       if (idx === SEQ.length) {
@@ -329,14 +293,9 @@ if (statusText) {
   });
 })();
 
-
-// -------------------------------------------------------
-// Snake Game
-// -------------------------------------------------------
 function openSnakeGame() {
   if (document.getElementById("egg-overlay")) return;
 
-  /* --- Build DOM --- */
   const overlay = document.createElement("div");
   overlay.className = "egg-overlay";
   overlay.id = "egg-overlay";
@@ -370,19 +329,18 @@ function openSnakeGame() {
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
 
-  /* --- Game state --- */
   const CELL = 20;
-  const COLS = canvas.width  / CELL;   // 21
-  const ROWS = canvas.height / CELL;   // 21
+  const COLS = canvas.width  / CELL;
+  const ROWS = canvas.height / CELL;
   const ctx  = canvas.getContext("2d");
 
-  const TICK_MS = 110;
+  const TICK_MS = 95;
 
   const HS_KEY = "snake-hs";
   const getHS  = () => parseInt(localStorage.getItem(HS_KEY) || "0", 10);
   const saveHS = (s) => { if (s > getHS()) localStorage.setItem(HS_KEY, String(s)); };
 
-  let snake, prevSnake, dir, nextDir, food, score, gameOver, paused;
+  let snake, prevSnake, dir, dirQueue, food, score, gameOver, paused;
   let gameInterval = null;
   let rafId = null;
   let lastTickTime = 0;
@@ -391,7 +349,7 @@ function openSnakeGame() {
     snake     = [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }];
     prevSnake = snake.map((s) => ({ ...s }));
     dir       = { x: 1, y: 0 };
-    nextDir   = { x: 1, y: 0 };
+    dirQueue  = [];
     food      = spawnFood();
     score     = 0;
     gameOver  = false;
@@ -428,6 +386,13 @@ function openSnakeGame() {
     if (paused) { beginFromPause(); return; }
   }
 
+  function queueDir(nx, ny) {
+    const last = dirQueue.length ? dirQueue[dirQueue.length - 1] : dir;
+    if (nx === last.x && ny === last.y) return;
+    if (nx === -last.x && ny === -last.y) return;
+    if (dirQueue.length < 2) dirQueue.push({ x: nx, y: ny });
+  }
+
   function spawnFood() {
     let pos;
     do {
@@ -444,7 +409,7 @@ function openSnakeGame() {
 
     prevSnake = snake.map((s) => ({ ...s }));
     lastTickTime = performance.now();
-    dir = nextDir;
+    if (dirQueue.length) dir = dirQueue.shift();
 
     const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
 
@@ -471,23 +436,36 @@ function openSnakeGame() {
     clearInterval(gameInterval);
   }
 
-  function rrect(x, y, w, h, r) {
+  function drawApple(fx, fy) {
+    const r = CELL / 2 - 3;
+
     ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y,     x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x,     y + h, r);
-    ctx.arcTo(x,     y + h, x,     y,     r);
-    ctx.arcTo(x,     y,     x + w, y,     r);
-    ctx.closePath();
+    ctx.fillStyle = "#e0433c";
+    ctx.arc(fx, fy + 1, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.arc(fx - r * 0.35, fy - r * 0.35, r * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#6b4226";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(fx, fy - r);
+    ctx.lineTo(fx + 1, fy - r - 5);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.fillStyle = "#4ede7a";
+    ctx.ellipse(fx + 4, fy - r - 3, 4, 2.2, -0.5, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  /* Draws one frame given the snake's interpolated positions (grid units, floats) */
   function drawFrame(positions) {
-    // Background
     ctx.fillStyle = "#08140a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle grid
     ctx.strokeStyle = "rgba(78,222,122,0.06)";
     ctx.lineWidth = 0.5;
     for (let x = 0; x <= COLS; x++) {
@@ -503,48 +481,30 @@ function openSnakeGame() {
       ctx.stroke();
     }
 
-    // Food — golden seed with a tiny specular dot
-    const fx = food.x * CELL + CELL / 2;
-    const fy = food.y * CELL + CELL / 2;
-    ctx.fillStyle = "#f0c040";
-    ctx.beginPath();
-    ctx.arc(fx, fy, CELL / 2 - 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,0.45)";
-    ctx.beginPath();
-    ctx.arc(fx - 2, fy - 2, 2, 0, Math.PI * 2);
-    ctx.fill();
+    drawApple(food.x * CELL + CELL / 2, food.y * CELL + CELL / 2);
 
-    // Snake body
-    for (let i = positions.length - 1; i >= 0; i--) {
-      const seg = positions[i];
-      const t   = i / Math.max(positions.length - 1, 1);
-
-      if (i === 0) {
-        ctx.fillStyle = "#4ede7a";
-      } else {
-        const g = Math.round(222 - t * 148);
-        const b = Math.round(60  + t * 15);
-        ctx.fillStyle = `rgb(15, ${g}, ${b})`;
+    if (positions.length > 1) {
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#4ede7a";
+      ctx.lineWidth = CELL - 6;
+      ctx.beginPath();
+      ctx.moveTo(positions[0].x * CELL + CELL / 2, positions[0].y * CELL + CELL / 2);
+      for (let i = 1; i < positions.length; i++) {
+        ctx.lineTo(positions[i].x * CELL + CELL / 2, positions[i].y * CELL + CELL / 2);
       }
-
-      const pad = i === 0 ? 1 : 2;
-      const r   = i === 0 ? 6 : 4;
-      rrect(
-        seg.x * CELL + pad,
-        seg.y * CELL + pad,
-        CELL - pad * 2,
-        CELL - pad * 2,
-        r
-      );
-      ctx.fill();
+      ctx.stroke();
     }
 
-    // Eyes on head
     if (positions.length > 0) {
       const hd = positions[0];
       const cx = hd.x * CELL + CELL / 2;
       const cy = hd.y * CELL + CELL / 2;
+
+      ctx.fillStyle = "#4ede7a";
+      ctx.beginPath();
+      ctx.arc(cx, cy, CELL / 2 - 3, 0, Math.PI * 2);
+      ctx.fill();
 
       let ex1, ey1, ex2, ey2;
       if      (dir.x ===  1) { ex1 = cx + 4; ey1 = cy - 3; ex2 = cx + 4; ey2 = cy + 3; }
@@ -556,7 +516,6 @@ function openSnakeGame() {
       ctx.beginPath(); ctx.arc(ex1, ey1, 2.2, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(ex2, ey2, 2.2, 0, Math.PI * 2); ctx.fill();
 
-      // Specular
       ctx.fillStyle = "rgba(255,255,255,0.55)";
       ctx.beginPath(); ctx.arc(ex1 - 0.5, ey1 - 0.5, 0.9, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(ex2 - 0.5, ey2 - 0.5, 0.9, 0, Math.PI * 2); ctx.fill();
@@ -590,7 +549,6 @@ function openSnakeGame() {
     }
   }
 
-  /* --- Smooth render loop: interpolates snake position between ticks --- */
   function renderLoop() {
     rafId = requestAnimationFrame(renderLoop);
 
@@ -602,7 +560,7 @@ function openSnakeGame() {
     const t = Math.min(1, (performance.now() - lastTickTime) / TICK_MS);
     const positions = snake.map((seg, i) => {
       const prev = prevSnake[i];
-      if (!prev) return seg; // newly grown segment, no previous frame to blend from
+      if (!prev) return seg;
       return {
         x: prev.x + (seg.x - prev.x) * t,
         y: prev.y + (seg.y - prev.y) * t,
@@ -611,7 +569,6 @@ function openSnakeGame() {
     drawFrame(positions);
   }
 
-  /* --- Keyboard controls --- */
   const MOVE_KEYS = new Set([
     "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ",
     "w", "a", "s", "d", "W", "A", "S", "D",
@@ -624,20 +581,16 @@ function openSnakeGame() {
     if ((e.key === " " || e.key === "Enter") && gameOver) { init(); return; }
     if ((e.key === " " || e.key === "Enter") && paused) { beginFromPause(); return; }
 
-    if (dir.x !== undefined) {
-      if ((e.key === "ArrowUp"    || e.key === "w" || e.key === "W") && dir.y !== 1)  nextDir = { x: 0,  y: -1 };
-      if ((e.key === "ArrowDown"  || e.key === "s" || e.key === "S") && dir.y !== -1) nextDir = { x: 0,  y:  1 };
-      if ((e.key === "ArrowLeft"  || e.key === "a" || e.key === "A") && dir.x !== 1)  nextDir = { x: -1, y:  0 };
-      if ((e.key === "ArrowRight" || e.key === "d" || e.key === "D") && dir.x !== -1) nextDir = { x: 1,  y:  0 };
-    }
+    if (e.key === "ArrowUp"    || e.key === "w" || e.key === "W") queueDir(0, -1);
+    if (e.key === "ArrowDown"  || e.key === "s" || e.key === "S") queueDir(0, 1);
+    if (e.key === "ArrowLeft"  || e.key === "a" || e.key === "A") queueDir(-1, 0);
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") queueDir(1, 0);
   };
 
   document.addEventListener("keydown", keyHandler);
 
-  /* --- Click / tap on canvas to start or restart --- */
   canvas.addEventListener("click", handleTapStart);
 
-  /* --- Touch / swipe --- */
   let touchOrigin = null;
   canvas.addEventListener("touchstart", (e) => {
     touchOrigin = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -654,22 +607,20 @@ function openSnakeGame() {
     if (paused) { beginFromPause(); return; }
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      if (dx >  16 && dir.x !== -1) nextDir = { x: 1,  y: 0 };
-      if (dx < -16 && dir.x !==  1) nextDir = { x: -1, y: 0 };
+      if (dx > 16) queueDir(1, 0);
+      if (dx < -16) queueDir(-1, 0);
     } else {
-      if (dy >  16 && dir.y !== -1) nextDir = { x: 0, y:  1 };
-      if (dy < -16 && dir.y !==  1) nextDir = { x: 0, y: -1 };
+      if (dy > 16) queueDir(0, 1);
+      if (dy < -16) queueDir(0, -1);
     }
     e.preventDefault();
   }, { passive: false });
 
-  /* --- Close on backdrop click --- */
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) closeSnakeGame();
   });
   closeBtn.addEventListener("click", closeSnakeGame);
 
-  /* --- Cleanup hook --- */
   overlay._cleanup = () => {
     clearInterval(gameInterval);
     cancelAnimationFrame(rafId);
@@ -684,7 +635,6 @@ function closeSnakeGame() {
   const overlay = document.getElementById("egg-overlay");
   if (!overlay) return;
   if (overlay._cleanup) overlay._cleanup();
-  // Fade out panel then remove
   const panel = overlay.querySelector(".egg-panel");
   if (panel) panel.style.animation = "egg-out 0.18s ease forwards";
   overlay.style.transition = "opacity 0.2s ease";
@@ -692,17 +642,13 @@ function closeSnakeGame() {
   setTimeout(() => overlay.remove(), 220);
 }
 
-
-// -------------------------------------------------------
-// Easter Egg — type "matrix" anywhere to open the rain
-// -------------------------------------------------------
 (function () {
   const WORD = "matrix";
   let typed = "";
 
   document.addEventListener("keydown", (e) => {
-    if (document.getElementById("egg-overlay")) return; // snake open, ignore
-    if (e.key.length !== 1) return; // ignore modifier/arrow keys etc.
+    if (document.getElementById("egg-overlay")) return;
+    if (e.key.length !== 1) return;
 
     typed = (typed + e.key.toLowerCase()).slice(-WORD.length);
     if (typed === WORD) {
@@ -721,11 +667,6 @@ function openMatrixRain() {
 
   const canvas = document.createElement("canvas");
   overlay.appendChild(canvas);
-
-  const hint = document.createElement("div");
-  hint.className = "matrix-hint";
-  hint.textContent = "click anywhere / esc to wake up";
-  overlay.appendChild(hint);
 
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add("matrix-visible"));

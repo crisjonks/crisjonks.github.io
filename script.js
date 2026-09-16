@@ -230,6 +230,7 @@ if (statusText) {
     "made with luau, love, and mild frustration",
     "works on my machine",
     "type 'matrix' somewhere on this page",
+    "confetti",
   ];
 
   const STATUS_TEXT =
@@ -246,6 +247,37 @@ if (statusText) {
   }
 
   setTimeout(typeStatus, 900);
+
+  if (STATUS_TEXT === "confetti") {
+    statusText.addEventListener("pointerenter", () => explodeConfetti(statusText));
+  }
+}
+
+function explodeConfetti(el) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const colors = ["#4ede7a", "#f0c040", "#e0433c", "#9bcfa8", "#dfffe6", "#386048"];
+
+  for (let i = 0; i < 26; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 90;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    const rot = Math.random() * 720 - 360;
+    piece.style.left = `${cx}px`;
+    piece.style.top = `${cy}px`;
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.setProperty("--tx", `${tx}px`);
+    piece.style.setProperty("--ty", `${ty}px`);
+    piece.style.setProperty("--rot", `${rot}deg`);
+    piece.style.width = `${4 + Math.random() * 4}px`;
+    piece.style.height = `${4 + Math.random() * 4}px`;
+    document.body.appendChild(piece);
+    piece.addEventListener("animationend", () => piece.remove());
+  }
 }
 
 (function () {
@@ -329,7 +361,7 @@ function openSnakeGame() {
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
 
-  const CELL = 20;
+  const CELL = 30;
   const COLS = canvas.width  / CELL;
   const ROWS = canvas.height / CELL;
   const ctx  = canvas.getContext("2d");
@@ -346,7 +378,7 @@ function openSnakeGame() {
   let lastTickTime = 0;
 
   function resetState() {
-    snake     = [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }];
+    snake     = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }];
     prevSnake = snake.map((s) => ({ ...s }));
     dir       = { x: 1, y: 0 };
     dirQueue  = [];
@@ -436,30 +468,14 @@ function openSnakeGame() {
     clearInterval(gameInterval);
   }
 
-  function drawApple(fx, fy) {
-    const r = CELL / 2 - 3;
-
+  function rrect(x, y, w, h, r) {
     ctx.beginPath();
-    ctx.fillStyle = "#e0433c";
-    ctx.arc(fx, fy + 1, r, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-    ctx.arc(fx - r * 0.35, fy - r * 0.35, r * 0.28, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = "#6b4226";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(fx, fy - r);
-    ctx.lineTo(fx + 1, fy - r - 5);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.fillStyle = "#4ede7a";
-    ctx.ellipse(fx + 4, fy - r - 3, 4, 2.2, -0.5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y,     x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x,     y + h, r);
+    ctx.arcTo(x,     y + h, x,     y,     r);
+    ctx.arcTo(x,     y,     x + w, y,     r);
+    ctx.closePath();
   }
 
   function drawFrame(positions) {
@@ -481,30 +497,45 @@ function openSnakeGame() {
       ctx.stroke();
     }
 
-    drawApple(food.x * CELL + CELL / 2, food.y * CELL + CELL / 2);
+    const fx = food.x * CELL + CELL / 2;
+    const fy = food.y * CELL + CELL / 2;
+    ctx.fillStyle = "#f0c040";
+    ctx.beginPath();
+    ctx.arc(fx, fy, CELL / 2 - 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    ctx.beginPath();
+    ctx.arc(fx - 2, fy - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
 
-    if (positions.length > 1) {
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = "#4ede7a";
-      ctx.lineWidth = CELL - 6;
-      ctx.beginPath();
-      ctx.moveTo(positions[0].x * CELL + CELL / 2, positions[0].y * CELL + CELL / 2);
-      for (let i = 1; i < positions.length; i++) {
-        ctx.lineTo(positions[i].x * CELL + CELL / 2, positions[i].y * CELL + CELL / 2);
+    for (let i = positions.length - 1; i >= 0; i--) {
+      const seg = positions[i];
+      const t   = i / Math.max(positions.length - 1, 1);
+
+      if (i === 0) {
+        ctx.fillStyle = "#4ede7a";
+      } else {
+        const g = Math.round(222 - t * 148);
+        const b = Math.round(60  + t * 15);
+        ctx.fillStyle = `rgb(15, ${g}, ${b})`;
       }
-      ctx.stroke();
+
+      const pad = i === 0 ? 1 : 2;
+      const r   = i === 0 ? 6 : 4;
+      rrect(
+        seg.x * CELL + pad,
+        seg.y * CELL + pad,
+        CELL - pad * 2,
+        CELL - pad * 2,
+        r
+      );
+      ctx.fill();
     }
 
     if (positions.length > 0) {
       const hd = positions[0];
       const cx = hd.x * CELL + CELL / 2;
       const cy = hd.y * CELL + CELL / 2;
-
-      ctx.fillStyle = "#4ede7a";
-      ctx.beginPath();
-      ctx.arc(cx, cy, CELL / 2 - 3, 0, Math.PI * 2);
-      ctx.fill();
 
       let ex1, ey1, ex2, ey2;
       if      (dir.x ===  1) { ex1 = cx + 4; ey1 = cy - 3; ex2 = cx + 4; ey2 = cy + 3; }

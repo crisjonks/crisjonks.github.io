@@ -1,3 +1,59 @@
+// ---------- enter gate + background music ----------
+const gate = document.getElementById("gate");
+const player = document.getElementById("player");
+const playerBtn = document.getElementById("player-btn");
+
+const bgm = new Audio("/song.mp3");
+bgm.loop = true;
+bgm.preload = "auto";
+bgm.volume = 0.5;
+
+function setPlayerState(playing) {
+  if (!player) return;
+  player.classList.toggle("playing", playing);
+  if (playerBtn) {
+    playerBtn.setAttribute("aria-pressed", String(playing));
+    playerBtn.setAttribute("aria-label", playing ? "Pause music" : "Play music");
+  }
+}
+
+bgm.addEventListener("play", () => setPlayerState(true));
+bgm.addEventListener("pause", () => setPlayerState(false));
+
+if (playerBtn) {
+  playerBtn.addEventListener("click", () => {
+    if (bgm.paused) bgm.play().catch(() => {});
+    else bgm.pause();
+  });
+}
+
+const siteReady = new Promise((resolve) => {
+  if (!gate) {
+    document.body.classList.remove("locked");
+    resolve();
+    return;
+  }
+
+  let entered = false;
+  function enter() {
+    if (entered) return;
+    entered = true;
+    bgm.play().catch(() => {});
+    gate.classList.add("leaving");
+    document.body.classList.remove("locked");
+    setTimeout(() => gate.remove(), 800);
+    resolve();
+  }
+
+  gate.addEventListener("click", enter);
+  gate.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.key === "Tab") return;
+    e.preventDefault();
+    enter();
+  });
+  gate.focus({ preventScroll: true });
+});
+
 const linksBtn = document.getElementById("links-btn");
 const projectsBtn = document.getElementById("projects-btn");
 const contactBtn = document.getElementById("contact-btn");
@@ -246,7 +302,7 @@ if (statusText) {
     }
   }
 
-  setTimeout(typeStatus, 900);
+  siteReady.then(() => setTimeout(typeStatus, 900));
 
   if (STATUS_TEXT === "confetti") {
     statusText.addEventListener("pointerenter", () => explodeConfetti(statusText));

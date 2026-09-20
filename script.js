@@ -3,7 +3,7 @@ const gate = document.getElementById("gate");
 const player = document.getElementById("player");
 const playerBtn = document.getElementById("player-btn");
 
-const bgm = new Audio("/song.mp3");
+const bgm = new Audio("/Asleep In Space 4.mp3");
 bgm.loop = true;
 bgm.preload = "auto";
 bgm.volume = 0.5;

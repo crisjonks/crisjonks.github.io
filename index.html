@@ -8,8 +8,13 @@
   <link rel="icon" type="image/x-icon" href="/icons/logo.ico">
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <noscript><style>.gate{display:none!important}body.locked .card,body.locked .time,body.locked .player{opacity:1!important;animation-play-state:running!important}</style></noscript>
 </head>
-<body>
+<body class="locked">
+  <div class="gate" id="gate" role="button" tabindex="0" aria-label="Click to enter">
+    <span class="gate-text">click anywhere to enter<span class="gate-cursor"></span></span>
+  </div>
+
   <main class="card" id="profile-card" role="main">
     <div class="top">
       <div class="avatar" aria-hidden="true">
@@ -87,6 +92,15 @@
   <div class="time" id="my-time" data-tooltip="">my time is --:-- --, UTC-5</div>
 
   <audio id="click-sound" src="/pop.mp3" preload="auto"></audio>
+
+  <div class="player" id="player">
+    <button class="player-btn" id="player-btn" type="button" aria-label="Play music" aria-pressed="false">
+      <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+    </button>
+    <span class="player-title">Asleep In Space</span>
+    <span class="player-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+  </div>
 
   <script src="script.js"></script>
 </body>

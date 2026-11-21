@@ -100,6 +100,11 @@ document.addEventListener(
 
 const projects = [
   {
+    name: "BaHangul",
+    desc: "the easiest way to learn the easiest alphabet",
+    url: "https://crisjonks.is-a.dev/bahangul",
+  },
+  {
     name: "code-editor",
     desc: "free-to-use code editor for any code in your browser",
     url: "https://crisjonks.github.io/code-editor",
